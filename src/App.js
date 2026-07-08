@@ -8,7 +8,7 @@ function App() {
   const [error, setError] = useState('');
 
   // ⚠️ IMPORTANT: Replace this with your Render URL
-  const BACKEND_URL = 'https://tiktok-backend-xxxx.onrender.com';
+  const BACKEND_URL = 'https://tiktok-backend-bf5g.onrender.com';
 
   const handleDownload = async () => {
     if (!url) {
