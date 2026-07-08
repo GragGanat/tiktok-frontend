@@ -7,8 +7,8 @@ function App() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  // ⚠️ IMPORTANT: Replace this with your Render URL from above
-  const BACKEND_URL = 'https://tiktok-backend-bf5g.onrender.com';
+  // ⚠️ IMPORTANT: Replace this with your Render URL
+  const BACKEND_URL = 'https://tiktok-backend-xxxx.onrender.com';
 
   const handleDownload = async () => {
     if (!url) {
@@ -34,14 +34,36 @@ function App() {
         body: JSON.stringify({ url: url }),
       });
 
-      const data = await response.json();
-
-      if (data.success) {
-        setMessage('✅ Video downloaded! It\'s saved on the server.');
-        setUrl('');
-      } else {
-        setError(`❌ Error: ${data.error}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        setError(`❌ Error: ${errorData.error || 'Failed to download'}`);
+        setLoading(false);
+        return;
       }
+
+      // Get the filename from the response headers
+      const contentDisposition = response.headers.get('content-disposition');
+      let filename = 'tiktok_video.mp4';
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+        if (filenameMatch) {
+          filename = filenameMatch[1];
+        }
+      }
+
+      // Convert response to blob and trigger download
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+
+      setMessage('✅ Video downloaded! Check your Downloads folder.');
+      setUrl('');
     } catch (err) {
       setError('❌ Connection failed. Is your backend running?');
       console.error(err);
@@ -86,6 +108,7 @@ function App() {
             <li>Paste it above</li>
             <li>Click Download</li>
             <li>Wait 30-60 seconds (first time is slower)</li>
+            <li>Your browser will automatically save the video</li>
           </ol>
         </div>
       </div>
